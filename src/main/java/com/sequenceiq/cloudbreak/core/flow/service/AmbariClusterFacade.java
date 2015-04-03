@@ -79,7 +79,20 @@ public class AmbariClusterFacade implements ClusterFacade {
         LOGGER.debug("Allocating Ambari roles. Context: {}", context);
         ProvisioningContext provisioningContext = (ProvisioningContext) context;
         AmbariRoleAllocationComplete ambariRoleAllocationComplete = ambariRoleAllocator
-                .allocateRoles(provisioningContext.getStackId(), provisioningContext.getCoreInstanceMetaData());
+                .allocateRoles(provisioningContext.getStackId());
+        Stack stack = ambariRoleAllocationComplete.getStack();
+        return new ProvisioningContext.Builder()
+                .setDefaultParams(stack.getId(), stack.cloudPlatform())
+                .setAmbariIp(ambariRoleAllocationComplete.getAmbariIp())
+                .build();
+    }
+
+    @Override
+    public FlowContext finalizeMetadata(FlowContext context) throws Exception {
+        LOGGER.debug("Finalize Metadata. Context: {}", context);
+        ProvisioningContext provisioningContext = (ProvisioningContext) context;
+        AmbariRoleAllocationComplete ambariRoleAllocationComplete = ambariRoleAllocator
+                .finalize(provisioningContext.getStackId(), provisioningContext.getCoreInstanceMetaData());
         Stack stack = ambariRoleAllocationComplete.getStack();
         return new ProvisioningContext.Builder()
                 .setDefaultParams(stack.getId(), stack.cloudPlatform())

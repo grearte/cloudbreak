@@ -1,5 +1,7 @@
 package com.sequenceiq.cloudbreak.core.flow.service;
 
+import static com.sequenceiq.cloudbreak.domain.InstanceGroupType.HOSTGROUP;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -15,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.sequenceiq.cloudbreak.core.CloudbreakException;
+import com.sequenceiq.cloudbreak.core.flow.ClusterSetupRunner;
 import com.sequenceiq.cloudbreak.core.flow.StackStartService;
 import com.sequenceiq.cloudbreak.core.flow.StackStopService;
 import com.sequenceiq.cloudbreak.core.flow.context.DefaultFlowContext;
@@ -66,6 +69,9 @@ public class SimpleStackFacade implements StackFacade {
 
     @Autowired
     private StackScalingService stackScalingService;
+
+    @Autowired
+    private ClusterSetupRunner clusterSetupRunner;
 
     @Autowired
     private UserDataBuilder userDataBuilder;
@@ -208,13 +214,24 @@ public class SimpleStackFacade implements StackFacade {
     }
 
     @Override
+    public FlowContext handleMunchausenSetup(FlowContext context) throws CloudbreakException {
+        try {
+            ProvisioningContext provisioningContext = (ProvisioningContext) context;
+            return clusterSetupRunner.run(provisioningContext);
+        } catch (Exception e) {
+            LOGGER.error("Exception during the handling of munchausen setup: {}", e.getMessage());
+            throw new CloudbreakException(e);
+        }
+    }
+
+    @Override
     public FlowContext updateAllowedSubnets(FlowContext context) throws CloudbreakException {
         UpdateAllowedSubnetsContext request = (UpdateAllowedSubnetsContext) context;
         Long stackId = request.getStackId();
         Stack stack = stackRepository.findOneWithLists(stackId);
         MDCBuilder.buildMdcContext(stack);
         String hostGroupUserData = userDataBuilder
-                .buildUserData(stack.cloudPlatform(), stack.getHash(), stack.getConsulServers(), new HashMap<String, String>(), InstanceGroupType.HOSTGROUP);
+                .buildUserData(stack.cloudPlatform(), stack.getHash(), stack.getConsulServers(), new HashMap<String, String>(), HOSTGROUP);
         String gateWayUserData = userDataBuilder
                 .buildUserData(stack.cloudPlatform(), stack.getHash(), stack.getConsulServers(), new HashMap<String, String>(), InstanceGroupType.GATEWAY);
         try {

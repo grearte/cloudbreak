@@ -123,6 +123,19 @@ public class SimpleFlowFacade implements FlowFacade {
     }
 
     @Override
+    public FlowContext finalizeMetadata(FlowContext context) throws CloudbreakException {
+        LOGGER.debug("Finalize Metadata. Context: {}", context);
+        try {
+            ProvisioningContext ambariRoleAllocationContext = (ProvisioningContext) clusterFacade.finalizeMetadata(context);
+            LOGGER.debug("Finalize Metadata roles DONE.");
+            return ambariRoleAllocationContext;
+        } catch (Exception e) {
+            LOGGER.error("Exception during finalize metadata: {}", e.getMessage());
+            throw new CloudbreakException(e);
+        }
+    }
+
+    @Override
     public FlowContext startAmbari(FlowContext context) throws CloudbreakException {
         LOGGER.debug("Starting Ambari. Context: {}", context);
         try {
@@ -440,6 +453,21 @@ public class SimpleFlowFacade implements FlowFacade {
             throw e;
         } catch (Exception e) {
             LOGGER.error("Exception during the handling of update allowed subnet failure: {}", e.getMessage());
+            throw new CloudbreakException(e);
+        }
+    }
+
+    @Override
+    public FlowContext setupMunchausenSetup(FlowContext context) throws CloudbreakException {
+        LOGGER.debug("Handling 'munchausen setup' failure. Context: {}", context);
+        try {
+            context = stackFacade.handleMunchausenSetup(context);
+            LOGGER.debug("Handling of 'munchausen setup' failure is DONE");
+            return context;
+        } catch (CloudbreakException e) {
+            throw e;
+        } catch (Exception e) {
+            LOGGER.error("Exception during the handling of munchausen setup failure: {}", e.getMessage());
             throw new CloudbreakException(e);
         }
     }

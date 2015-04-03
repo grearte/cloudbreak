@@ -10,6 +10,8 @@ public interface ClusterFacade {
 
     FlowContext allocateAmbariRoles(FlowContext context) throws Exception;
 
+    FlowContext finalizeMetadata(FlowContext context) throws Exception;
+
     FlowContext startAmbari(FlowContext context) throws Exception;
 
     FlowContext buildAmbariCluster(FlowContext context) throws Exception;

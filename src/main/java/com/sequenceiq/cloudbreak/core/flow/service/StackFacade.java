@@ -26,4 +26,6 @@ public interface StackFacade {
     FlowContext updateAllowedSubnets(FlowContext context) throws CloudbreakException;
 
     FlowContext handleUpdateAllowedSubnetsFailure(FlowContext context) throws CloudbreakException;
+
+    FlowContext handleMunchausenSetup(FlowContext context) throws CloudbreakException;
 }
